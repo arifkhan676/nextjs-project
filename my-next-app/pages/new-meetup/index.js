@@ -6,7 +6,7 @@ const index = () => {
   const router = useRouter();
 
   async function addMeetHandler(eventValue) {
-    const response = await fetch("/my-next-app/pages/api/meetupApi", {
+    const response = await fetch("/api/meetupApi", {
       method: "POST",
       body: JSON.stringify(eventValue),
       headers: {
