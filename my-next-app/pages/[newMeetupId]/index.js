@@ -1,33 +1,38 @@
 import React from "react";
 import MeetUpDetail from "../../components/meetups/MeetUpDetail";
+import { MongoClient, ObjectId } from "mongodb";
+import Head from "next/head";
 
-const index = () => {
+const index = (props) => {
   return (
     <div>
+      <Head>
+        <title> Product Page </title>
+        <meta name="A new Product Page" content="This is a Product Page" />
+      </Head>
       <MeetUpDetail
-        title="A great picture"
-        image="https://th.bing.com/th/id/R.f8300f8f433b90e19ca2f807d14d9d38?rik=hP318Di8708nbA&riu=http%3a%2f%2fwww.thelandofsnows.com%2fwp-content%2fuploads%2f2012%2f05%2fDSC01637.jpg&ehk=uXjOJtJsR1QBc%2bbWiZjT2Velc%2fcQP2wNDU4J%2fVWexSg%3d&risl=&pid=ImgRaw&r=0"
-        description="Enjoy access to Chambord Castle, including its gardens and temporary exhibitions"
+        title={props.meetupData.title}
+        image={props.meetupData.image}
+        description={props.meetupData.description}
       />
     </div>
   );
 };
 
 export async function getStaticPaths() {
+  const client = await MongoClient.connect(
+    "mongodb+srv://meetup:meetup7890@cluster0.8dsqzra.mongodb.net/meetupApi?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+
+  const meetupCollection = db.collection("meetupApi");
+  const result = await meetupCollection.find({}, { _id: 1 }).toArray();
+
   return {
     fallback: false,
-    paths: [
-      {
-        params: {
-          newMeetupId: "m1",
-        },
-      },
-      {
-        params: {
-          newMeetupId: "m2",
-        },
-      },
-    ],
+    paths: result.map((meetup) => ({
+      params: { newMeetupId: meetup._id.toString() },
+    })),
   };
 }
 
@@ -35,13 +40,27 @@ export async function getStaticProps(context) {
   const newMeetupId = context.params.newMeetupId;
   // console.log(newMeetupId); this console will show in terminal as it is in rederring
 
+  const client = await MongoClient.connect(
+    "mongodb+srv://meetup:meetup7890@cluster0.8dsqzra.mongodb.net/meetupApi?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+
+  const meetupCollection = db.collection("meetupApi");
+  const selectedMeetup = await meetupCollection.findOne({
+    _id: new ObjectId(newMeetupId),
+  });
+
+  client.close();
+  console.log(selectedMeetup);
+
   return {
     props: {
-      title: "A great picture",
-      image:
-        "https://th.bing.com/th/id/R.f8300f8f433b90e19ca2f807d14d9d38?rik=hP318Di8708nbA&riu=http%3a%2f%2fwww.thelandofsnows.com%2fwp-content%2fuploads%2f2012%2f05%2fDSC01637.jpg&ehk=uXjOJtJsR1QBc%2bbWiZjT2Velc%2fcQP2wNDU4J%2fVWexSg%3d&risl=&pid=ImgRaw&r=0",
-      description:
-        "Enjoy access to Chambord Castle, including its gardens and temporary exhibitions",
+      meetupData: {
+        id: selectedMeetup._id.toString(),
+        title: selectedMeetup.title,
+        image: selectedMeetup.image,
+        description: selectedMeetup.description,
+      },
     },
   };
 }
