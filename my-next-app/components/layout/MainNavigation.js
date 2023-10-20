@@ -13,6 +13,9 @@ function MainNavigation() {
           <li>
             <Link href="/new-meetup">Add New Meetup</Link>
           </li>
+          <li>
+            <Link href="/about">about</Link>
+          </li>
         </ul>
       </nav>
     </header>
